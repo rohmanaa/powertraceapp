@@ -1,0 +1,850 @@
+<!DOCTYPE html>
+<html lang="id"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>PowerTRACE Web v3</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@700;800&family=Figtree:wght@400;500;600&display=swap">
+<style>
+:root{--bg:#e6ebf3;--pn:#fbfcfe;--tx:#101a2e;--mu:#5a6679;--bd:#d3dae6;--ac:#2d5bff;--ok:#0fa37f;--c1:#fff;--c2:#e9edf4;--dot:#c4ccdb;color-scheme:light}
+@media(prefers-color-scheme:dark){:root{--bg:#0b101a;--pn:#141b29;--tx:#e7ecf6;--mu:#8c98ad;--bd:#263044;--ac:#6f94ff;--ok:#3ed1a8;--c1:#262f41;--c2:#1d2535;--dot:#2a3449;color-scheme:dark}}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{height:100%}
+body{margin:0;display:flex;flex-direction:column;background:var(--bg);color:var(--tx);font:14px/1.4 Figtree,system-ui,sans-serif;overflow:hidden;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+header{display:flex;align-items:center;gap:10px;padding:8px 14px;background:var(--pn);border-bottom:1px solid var(--bd)}
+.logo{display:flex;align-items:center;gap:8px;font:800 18px 'Bricolage Grotesque',system-ui,sans-serif;letter-spacing:-.02em}
+.logo svg{width:26px;height:26px}.logo i{font-style:normal;color:var(--ac)}
+.tag{color:var(--mu);font-size:12px}.sp{flex:1}.mu{color:var(--mu);font-size:12px}
+button,select,input[type=number]{font:inherit;color:var(--tx);background:var(--pn);border:1px solid var(--bd);border-radius:9px;padding:7px 12px;min-height:36px}
+button{cursor:pointer;transition:background .15s,border-color .15s,transform .1s}button:active{transform:scale(.96)}
+button.p{background:var(--ac);border-color:var(--ac);color:#fff;font-weight:600}button.on{border-color:var(--ac);color:var(--ac);background:color-mix(in srgb,var(--ac) 10%,var(--pn))}
+button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid var(--ac);outline-offset:2px}
+main{flex:1;display:grid;grid-template-columns:1fr 360px;min-height:0}
+#stage{position:relative;overflow:hidden;touch-action:none;min-height:0;background:var(--c2) radial-gradient(var(--dot) 1px,transparent 1.2px) 0 0/18px 18px;user-select:none}
+#wrap{position:absolute;left:0;top:0;transform-origin:0 0;background:repeating-conic-gradient(var(--c1) 0 25%,var(--c2) 0 50%) 0 0/16px 16px;box-shadow:0 0 0 1px var(--bd),0 12px 40px rgba(10,20,50,.18)}
+#wrap img,#svgbox{position:absolute;inset:0;width:100%;height:100%;display:block;pointer-events:none}
+#svgbox svg{width:100%;height:100%;display:block}
+.fl{position:absolute;z-index:3;display:flex;gap:4px;padding:4px;background:var(--pn);border:1px solid var(--bd);border-radius:12px;box-shadow:0 6px 20px rgba(10,20,50,.14)}
+.fl button{border:0;background:none;padding:6px 11px;border-radius:8px;min-height:34px}.fl button.on{background:color-mix(in srgb,var(--ac) 14%,transparent)}
+#vw{top:10px;left:50%;transform:translateX(-50%)}#zm{bottom:10px;right:10px;align-items:center}#zl{min-width:44px;text-align:center;font-size:12px;color:var(--mu)}
+#spl{position:absolute;z-index:3;top:62px;left:50%;transform:translateX(-50%);width:min(240px,60%);display:none}
+#st{position:absolute;z-index:3;left:10px;bottom:10px;padding:6px 12px;border-radius:99px;background:var(--ac);color:#fff;font-size:12px;font-weight:600;display:none}
+#drop{position:absolute;inset:0;margin:auto;width:min(420px,88%);height:max-content;text-align:center;padding:34px 22px;border:2px dashed var(--bd);border-radius:18px;background:color-mix(in srgb,var(--pn) 70%,transparent);cursor:pointer;z-index:2}
+#drop.hot{border-color:var(--ac);background:color-mix(in srgb,var(--ac) 10%,var(--pn))}
+#drop b{display:block;font:800 20px 'Bricolage Grotesque',system-ui,sans-serif;margin:10px 0 6px}
+#panel{background:var(--pn);border-left:1px solid var(--bd);padding:12px 14px 20px;overflow:auto;min-height:0}
+.row{display:flex;align-items:center;gap:8px;margin:7px 0}.row>label{width:104px;color:var(--mu);font-size:12px;flex:none}.row>select{flex:1;min-width:0}
+.tabs{display:flex;gap:4px;margin:12px 0 8px;padding:3px;background:var(--c2);border-radius:11px}.tabs button{flex:1;border:0;background:none;padding:7px 4px}.tabs button.on{background:var(--pn);box-shadow:0 1px 4px rgba(10,20,50,.15)}
+#pc{display:none;flex:none;flex-basis:36px}
+.sl{margin:10px 0}.sl label{display:flex;justify-content:space-between;font-size:12px;color:var(--mu)}.sl output{color:var(--tx);font-weight:600}
+input[type=range]{width:100%;accent-color:var(--ac);height:28px}
+.ck{display:flex;align-items:center;gap:9px;margin:7px 0}.ck input{width:18px;height:18px;accent-color:var(--ac);flex:none}.ck label{flex:1}.sub{margin-left:26px}
+.dis{opacity:.4;pointer-events:none}
+.box{border:1px solid var(--bd);border-radius:12px;padding:10px 12px;margin-top:12px;font-size:13px;background:var(--c2)}.box div{display:flex;justify-content:space-between;padding:2px 0}.box b{display:block;margin-bottom:4px}
+#sw{display:grid;grid-template-columns:repeat(6,1fr);gap:7px;margin-top:10px}
+.sw{height:38px;border-radius:9px;border:2px solid var(--bd);padding:0;position:relative}.sw.off{opacity:.3;border-style:dashed}
+input[type=text]{flex:1;min-width:0;font:inherit;color:var(--tx);background:var(--pn);border:1px solid var(--bd);border-radius:9px;padding:7px 12px;min-height:36px}
+input[type=text]{font:inherit;color:var(--tx);background:var(--pn);border:1px solid var(--bd);border-radius:9px;padding:7px 12px;min-height:36px}
+#pl{margin:10px 0}.pi{display:flex;align-items:center;gap:6px;padding:6px 0;border-bottom:1px solid var(--bd)}.pi b{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600}.pi button{padding:5px 10px;min-height:32px}
+input[type=number]{width:84px}input[type=color]{width:42px;height:34px;padding:0;border:1px solid var(--bd);border-radius:8px;background:none}
+@media(max-width:820px){
+ .tag{display:none}main{grid-template-columns:1fr;grid-template-rows:1fr auto}
+ #panel{border-left:0;border-top:1px solid var(--bd);height:46vh;border-radius:18px 18px 0 0;margin-top:-14px;z-index:4;box-shadow:0 -8px 24px rgba(10,20,50,.12);transition:height .25s}
+ #panel.min{height:118px;overflow:hidden}#pc{display:block}
+ .row>label{width:88px}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+
+#dfc{position:absolute;inset:0;width:100%;height:100%;display:none;pointer-events:none}
+#qa b{display:block;margin-bottom:4px}#qa .big{font:800 22px 'Bricolage Grotesque',system-ui,sans-serif;color:var(--ok)}
+#auto{width:100%;margin-top:8px}
+</style></head><body>
+<header>
+ <div class="logo"><svg viewBox="0 0 26 26" fill="none"><path d="M3 20C8 4 16 4 23 20" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><rect x="1.5" y="18" width="4.5" height="4.5" rx="1" fill="var(--ac)"/><rect x="20" y="18" width="4.5" height="4.5" rx="1" fill="var(--ac)"/><rect x="10.8" y="4.8" width="4.5" height="4.5" rx="1" fill="var(--pn)" stroke="var(--ac)" stroke-width="1.6"/></svg>Power<i>TRACE</i></div>
+ <span class="tag">Bitmap ke vektor, langsung di browser</span><span class="sp"></span>
+ <button id="bimp">Impor</button><button id="hex" class="p">Ekspor</button><input id="file" type="file" accept="image/*" hidden>
+</header>
+<main>
+<section id="stage">
+ <div class="fl" id="vw"><button data-v="orig">Asli</button><button data-v="res" class="on">Hasil</button><button data-v="split">Belah</button><button data-v="wire">Garis</button><button data-v="diff">Selisih</button></div>
+ <input id="spl" type="range" min="0" max="100" value="50" aria-label="Posisi belah">
+ <div class="fl" id="zm"><button id="zo" aria-label="Perkecil">−</button><span id="zl">100%</span><button id="zi" aria-label="Perbesar">+</button><button id="zf">Pas</button></div>
+ <div id="st">Memproses…</div>
+ <div id="drop"><svg width="44" height="44" viewBox="0 0 26 26" fill="none" stroke="var(--ac)" stroke-width="1.8" stroke-linecap="round"><path d="M13 19V6M7.5 11.5 13 6l5.5 5.5M4 21h18"/></svg><b>Letakkan gambar di sini</b>Ketuk untuk memilih, seret &amp; lepas, atau tempel dengan Ctrl+V<br><span class="mu">JPG, PNG, WebP, BMP, GIF</span></div>
+ <div id="wrap" hidden><img id="orig" alt=""><div id="svgbox"></div><canvas id="dfc"></canvas></div>
+</section>
+<aside id="panel">
+ <div class="row"><label>Jenis trace</label><select id="tt"><option value="o">Outline (isi warna)</option><option value="c">Centerline (garis)</option></select></div>
+ <div class="row"><label>Jenis gambar</label><select id="ty"></select></div>
+ <div class="tabs"><button data-t="set" class="on">Pengaturan</button><button data-t="col">Warna</button><button data-t="out">Ekspor</button><button data-t="pre">Preset</button><button id="pc" aria-label="Ciutkan panel">▾</button></div>
+
+ <div class="tab" id="t-set">
+  <div class="box" id="qa" style="margin-top:0"><b>Kemiripan dengan gambar asli</b><div><span class="big" id="q-s">–</span><span id="q-e" class="mu">–</span></div>
+   <button id="auto" class="p">Optimalkan otomatis</button><div class="mu" id="q-n" style="margin-top:6px">Lihat selisihnya lewat tombol "Selisih" di atas kanvas.</div></div>
+  <div class="sl"><label>Detail <output id="o-detail"></output></label><input type="range" id="detail" min="0" max="100" value="70"></div>
+  <div class="sl"><label>Toleransi tepi (kecil = presisi) <output id="o-smooth"></output></label><input type="range" id="smooth" min="0" max="100" value="35"></div>
+  <div class="sl"><label>Ambang sudut (kecil = banyak sudut tajam) <output id="o-corner"></output></label><input type="range" id="corner" min="0" max="100" value="45"></div>
+  <div class="ck"><input type="checkbox" id="del" checked><label for="del">Sembunyikan gambar asli di tampilan Hasil</label></div>
+  <div class="ck"><input type="checkbox" id="rmbg" checked><label for="rmbg">Hapus latar belakang</label></div>
+  <div id="bgo">
+   <div class="ck sub"><input type="radio" name="bm" id="bga" checked><label for="bga">Pilih warna otomatis</label></div>
+   <div class="ck sub"><input type="radio" name="bm" id="bgs"><label for="bgs">Tentukan warna</label><input type="color" id="bgc" value="#ffffff"><button id="pk" title="Ketuk gambar untuk ambil warna">Ambil</button></div>
+   <div class="ck sub"><input type="checkbox" id="all"><label for="all">Putih/latar di dalam objek juga jadi lubang</label></div>
+  </div>
+  <div class="ck"><input type="checkbox" id="ovl" checked><label for="ovl">Tumpuk lapisan agar tanpa celah (disarankan)</label></div>
+  <div class="ck sub"><input type="checkbox" id="group"><label for="group">Kelompokkan objek per warna</label></div>
+  <div class="row"><label>Resolusi proses</label><select id="res"><option value="800">Cepat (800px)</option><option value="1400">Normal (1400px)</option><option value="2048" selected>Tinggi (2048px)</option><option value="3000">Maksimum (3000px)</option></select></div>
+  <div class="box"><b>Detail hasil trace</b><div><span>Kurva</span><span id="d-c">0</span></div><div><span>Node</span><span id="d-n">0</span></div><div><span>Warna</span><span id="d-k">0</span></div></div>
+ </div>
+
+ <div class="tab" id="t-col" hidden>
+  <div class="sl"><label>Jumlah warna maksimum <output id="o-k"></output></label><input type="range" id="k" min="2" max="32" value="16"></div>
+  <div class="mu">Ketuk kotak warna untuk menyembunyikan atau memunculkan warna itu.</div>
+  <div id="sw"></div><div class="mu" id="cn" style="margin-top:8px"></div>
+ </div>
+
+ <div class="tab" id="t-out" hidden>
+  <div class="row"><label>Ukuran</label><input type="number" id="ow" min="1" inputmode="numeric"> × <input type="number" id="oh" min="1" inputmode="numeric"></div>
+  <div class="ck"><input type="checkbox" id="lk" checked><label for="lk">Kunci rasio</label><button id="o0">Ukuran asli</button></div>
+  <div class="row"><label>Format</label><select id="fmt"><option value="svg">SVG (vektor)</option><option value="eps">EPS (vektor)</option><option value="png">PNG (transparan)</option><option value="jpg">JPG</option></select></div>
+  <div class="row"><label>Skala PNG/JPG</label><select id="xs"><option value="1">1×</option><option value="2">2×</option><option value="3">3×</option><option value="4">4×</option></select></div>
+  <div class="row"><label>Latar JPG</label><input type="color" id="jbg" value="#ffffff"></div>
+  <button id="ex" class="p" style="width:100%;margin-top:10px">Ekspor file</button>
+  <p class="mu">SVG dan EPS tetap vektor. PNG/JPG dirender ulang dari vektor sesuai skala.</p>
+ </div>
+
+ <div class="tab" id="t-pre" hidden>
+  <div class="row"><input type="text" id="pn" placeholder="Nama preset" maxlength="40" style="flex:1;min-width:0"><button id="ps" class="p">Simpan</button></div>
+  <div class="mu">Menyimpan semua pengaturan saat ini: jenis trace, slider, warna, dan opsi latar.</div>
+  <div id="pl"></div>
+  <div class="row"><button id="pi" style="flex:1">Impor .tpi</button><button id="pe" style="flex:1">Ekspor semua .tpi</button></div>
+  <input id="pf" type="file" hidden>
+ </div>
+</aside>
+</main>
+<script>
+/* ===== PowerTRACE engine v3 =====
+   Alur: analisis palet -> pelabelan piksel -> kontur sub-piksel (marching squares)
+   -> deteksi sudut -> pas garis / lingkaran / busur / Bezier (Schneider). */
+const PT=(function(){
+'use strict';
+const d2=(a,b)=>{const x=a[0]-b[0],y=a[1]-b[1],z=a[2]-b[2];return x*x+y*y+z*z};
+const bin=(r,g,b)=>(r>>3)<<10|(g>>3)<<5|(b>>3);
+
+/* ---------- warna latar dari tepi gambar ---------- */
+function borderMode(d,w,h){
+ const cnt=new Uint32Array(32768),at=[];
+ /* cincin diambil sedikit ke dalam supaya garis bingkai tipis di tepi tidak dianggap latar */
+ const m=(w>=64&&h>=64)?8:0;
+ for(let x=m;x<w-m;x++){at.push((m*w+x)*4,((h-1-m)*w+x)*4)}
+ for(let y=m+1;y<h-1-m;y++){at.push((y*w+m)*4,(y*w+w-1-m)*4)}
+ for(const i of at)cnt[bin(d[i],d[i+1],d[i+2])]++;
+ let b=0;for(let i=1;i<32768;i++)if(cnt[i]>cnt[b])b=i;
+ let sr=0,sg=0,sb=0,c=0;
+ for(const i of at)if(bin(d[i],d[i+1],d[i+2])===b){sr+=d[i];sg+=d[i+1];sb+=d[i+2];c++}
+ return [sr/c,sg/c,sb/c];
+}
+/* garis bingkai tipis di tepi gambar (artefak) dianggap latar */
+function cleanFrame(d,w,h,bg){
+ if(w<48||h<48)return;
+ const R=4,IN=8,T=32*32;
+ const near=i=>{const x=d[i]-bg[0],y=d[i+1]-bg[1],z=d[i+2]-bg[2];return x*x+y*y+z*z<=T};
+ const fix=(x,y)=>{
+  const i=(y*w+x)*4;if(near(i))return;
+  const dx=Math.min(x,w-1-x),dy=Math.min(y,h-1-y);let ok=true;
+  if(dx<=dy||dx<R){const xx=x<w/2?x+IN:x-IN;if(!near((y*w+xx)*4))ok=false}
+  if(ok&&(dy<=dx||dy<R)){const yy=y<h/2?y+IN:y-IN;if(!near((yy*w+x)*4))ok=false}
+  if(ok){d[i]=bg[0];d[i+1]=bg[1];d[i+2]=bg[2]}
+ };
+ for(let y=0;y<h;y++){
+  if(y<R||y>=h-R){for(let x=0;x<w;x++)fix(x,y)}
+  else{for(let x=0;x<R;x++)fix(x,y);for(let x=w-R;x<w;x++)fix(x,y)}
+ }
+}
+
+/* ---------- analisis: palet + label tiap piksel ---------- */
+function analyze(raw,w,h,o){
+ o=o||{};const n=w*h,maxC=Math.max(2,Math.min(32,o.maxColors||8));
+ const d=new Uint8ClampedArray(raw);
+ const bg0=borderMode(d,w,h);cleanFrame(d,w,h,bg0);
+ const TH=16,bad=new Uint8Array(n);
+ for(let y=0;y<h;y++)for(let x=0;x<w;x++){
+  const i=y*w+x,p=i*4;
+  if(x<w-1){const q=p+4;if(Math.abs(d[p]-d[q])>TH||Math.abs(d[p+1]-d[q+1])>TH||Math.abs(d[p+2]-d[q+2])>TH){bad[i]=1;bad[i+1]=1}}
+  if(y<h-1){const q=p+w*4;if(Math.abs(d[p]-d[q])>TH||Math.abs(d[p+1]-d[q+1])>TH||Math.abs(d[p+2]-d[q+2])>TH){bad[i]=1;bad[i+w]=1}}
+ }
+ let nc=0;for(let i=0;i<n;i++)if(!bad[i])nc++;
+ const useAll=nc<n*0.02;
+ const cnt=new Uint32Array(32768),sr=new Float64Array(32768),sg=new Float64Array(32768),sb=new Float64Array(32768);
+ let tot=0;
+ for(let i=0;i<n;i++){if(!useAll&&bad[i])continue;const p=i*4,k=bin(d[p],d[p+1],d[p+2]);cnt[k]++;sr[k]+=d[p];sg[k]+=d[p+1];sb[k]+=d[p+2];tot++}
+ const minCnt=Math.max(24,Math.round(tot*(o.minShare||0.0004)));
+ const bins=[];for(let k=0;k<32768;k++)if(cnt[k]>=minCnt)bins.push(k);
+ bins.sort((a,b)=>cnt[b]-cnt[a]);
+ const mean=k=>[sr[k]/cnt[k],sg[k]/cnt[k],sb[k]/cnt[k]];
+ let merge=o.merge||36,pal=[];
+ for(let t=0;t<14;t++){
+  pal=[];
+  for(const k of bins){const c=mean(k);let ok=true;for(const p of pal)if(d2(c,p)<merge*merge){ok=false;break}
+   if(ok){pal.push(c);if(pal.length>maxC)break}}
+  if(pal.length<=maxC)break;merge*=1.25;
+ }
+ if(!pal.length)pal=[bg0.slice()];
+ if(pal.length>maxC)pal.length=maxC;
+ /* haluskan: rata-rata semua bin yang paling dekat ke tiap warna palet */
+ {const S=pal.map(()=>[0,0,0,0]);
+  for(let k=0;k<32768;k++){if(!cnt[k])continue;const c=mean(k);let bi=0,bd=1e18;
+   for(let j=0;j<pal.length;j++){const v=d2(c,pal[j]);if(v<bd){bd=v;bi=j}}
+   if(bd<merge*merge){const s=S[bi];s[0]+=sr[k];s[1]+=sg[k];s[2]+=sb[k];s[3]+=cnt[k]}}
+  pal=pal.map((c,j)=>S[j][3]?[S[j][0]/S[j][3],S[j][1]/S[j][3],S[j][2]/S[j][3]]:c)}
+ pal=pal.map(c=>c.map(Math.round));
+ /* latar */
+ let bg=0,bgd=1e18;pal.forEach((c,j)=>{const v=d2(c,bg0);if(v<bgd){bgd=v;bg=j}});
+ if(bgd>(merge*1.2)**2){pal.push(bg0.map(Math.round));bg=pal.length-1}
+ const K=pal.length,P=new Float64Array(K*3);pal.forEach((c,j)=>{P[j*3]=c[0];P[j*3+1]=c[1];P[j*3+2]=c[2]});
+ const nearest=(r,g,b)=>{let bi=0,bd=1e18;for(let j=0;j<K;j++){const x=r-P[j*3],y=g-P[j*3+1],z=b-P[j*3+2],v=x*x+y*y+z*z;if(v<bd){bd=v;bi=j}}return bi};
+ /* label piksel yang jelas (dekat palet) */
+ const DC=o.core||26,DC2=DC*DC,lab=new Uint8Array(n).fill(255),unk=[];let last=0;
+ for(let i=0;i<n;i++){
+  const p=i*4,r=d[p],g=d[p+1],b=d[p+2];
+  let x=r-P[last*3],y=g-P[last*3+1],z=b-P[last*3+2];
+  if(x*x+y*y+z*z<=DC2){lab[i]=last;continue}
+  const j=nearest(r,g,b);x=r-P[j*3];y=g-P[j*3+1];z=b-P[j*3+2];
+  if(x*x+y*y+z*z<=DC2){lab[i]=j;last=j}else unk.push(i);
+ }
+ /* piksel tepi (campuran): pilih warna terdekat HANYA dari warna yang ada di sekitarnya */
+ if(unk.length){
+  const out=new Uint8Array(unk.length),all=unk.length>0.35*n,stamp=new Int32Array(K),R=4;
+  for(let u=0;u<unk.length;u++){
+   const i=unk[u],x0=i%w,y0=(i/w)|0,p=i*4,r=d[p],g=d[p+1],b=d[p+2];
+   let bi=-1,bd=1e18;
+   if(!all){
+    const ya=Math.max(0,y0-R),yb=Math.min(h-1,y0+R),xa=Math.max(0,x0-R),xb=Math.min(w-1,x0+R);
+    for(let y=ya;y<=yb;y++)for(let x=xa;x<=xb;x++){
+     const l=lab[y*w+x];if(l===255||stamp[l]===u+1)continue;stamp[l]=u+1;
+     const a=r-P[l*3],bb=g-P[l*3+1],c=b-P[l*3+2],v=a*a+bb*bb+c*c;if(v<bd){bd=v;bi=l}}
+   }
+   out[u]=bi>=0?bi:nearest(r,g,b);
+  }
+  for(let u=0;u<unk.length;u++)lab[unk[u]]=out[u];
+ }
+ return {w,h,pal,lab,bg,merge};
+}
+
+/* ---------- topeng, blur, marching squares ---------- */
+function dilate(m,w,h,r){
+ const t=new Uint8Array(w*h),o=new Uint8Array(w*h);
+ for(let y=0;y<h;y++){const row=y*w;let last=-1e9;
+  for(let x=0;x<w;x++){if(m[row+x])last=x;if(x-last<=r)t[row+x]=1}
+  last=1e9;for(let x=w-1;x>=0;x--){if(m[row+x])last=x;if(last-x<=r)t[row+x]=1}}
+ for(let x=0;x<w;x++){let last=-1e9;
+  for(let y=0;y<h;y++){if(t[y*w+x])last=y;if(y-last<=r)o[y*w+x]=1}
+  last=1e9;for(let y=h-1;y>=0;y--){if(t[y*w+x])last=y;if(last-y<=r)o[y*w+x]=1}}
+ return o;
+}
+function fieldOf(mask,w,h,F,T){
+ const W=w+2,H=h+2;F.fill(0);
+ for(let y=0;y<h;y++){const a=(y+1)*W+1,b=y*w;for(let x=0;x<w;x++)F[a+x]=mask[b+x]}
+ for(let y=0;y<H;y++){const r=y*W;for(let x=1;x<W-1;x++)T[r+x]=(F[r+x-1]+2*F[r+x]+F[r+x+1])*.25;T[r]=T[r+1]*.5;T[r+W-1]=T[r+W-2]*.5}
+ for(let y=1;y<H-1;y++){const r=y*W;for(let x=0;x<W;x++)F[r+x]=(T[r-W+x]+2*T[r+x]+T[r+W+x])*.25}
+ for(let x=0;x<W;x++){F[x]=0;F[(H-1)*W+x]=0}
+}
+function march(F,W,H,next,starts){
+ for(let gy=0;gy<H-1;gy++){
+  let i=gy*W;
+  for(let gx=0;gx<W-1;gx++,i++){
+   const a=F[i]>=.5,b=F[i+1]>=.5,c=F[i+W+1]>=.5,e=F[i+W]>=.5;
+   const cs=(a?1:0)|(b?2:0)|(c?4:0)|(e?8:0);
+   if(cs===0||cs===15)continue;
+   const T=i*2,L=i*2+1,R=(i+1)*2+1,B=(i+W)*2;
+   const add=(f,t)=>{next[f]=t;starts.push(f)};
+   switch(cs){
+    case 1:add(T,L);break;case 2:add(R,T);break;case 3:add(R,L);break;case 4:add(B,R);break;
+    case 6:add(B,T);break;case 7:add(B,L);break;case 8:add(L,B);break;case 9:add(T,B);break;
+    case 11:add(R,B);break;case 12:add(L,R);break;case 13:add(T,R);break;case 14:add(L,T);break;
+    case 5:{const m=(F[i]+F[i+1]+F[i+W]+F[i+W+1])*.25;if(m>=.5){add(T,R);add(B,L)}else{add(T,L);add(B,R)}break}
+    case 10:{const m=(F[i]+F[i+1]+F[i+W]+F[i+W+1])*.25;if(m>=.5){add(L,T);add(R,B)}else{add(R,T);add(L,B)}break}
+   }
+  }
+ }
+}
+function ept(F,W,id){
+ const e=id>>1,gy=(e/W)|0,gx=e-gy*W;
+ if((id&1)===0){const v0=F[e],v1=F[e+1];return [gx+(.5-v0)/(v1-v0)-.5,gy-.5]}
+ const v0=F[e],v1=F[e+W];return [gx-.5,gy+(.5-v0)/(v1-v0)-.5];
+}
+function loops(F,W,H,next,starts){
+ const res=[];
+ for(const s of starts){
+  if(next[s]===-1)continue;
+  const pts=[];let cur=s;
+  do{pts.push(ept(F,W,cur));const nx=next[cur];next[cur]=-1;cur=nx}while(cur!==s&&cur>=0);
+  if(pts.length>=3)res.push(pts);
+ }
+ return res;
+}
+
+/* ---------- geometri ---------- */
+function resample(P,step){
+ const n=P.length;let L=0;const seg=new Float64Array(n);
+ for(let i=0;i<n;i++){const a=P[i],b=P[(i+1)%n];seg[i]=Math.hypot(b[0]-a[0],b[1]-a[1]);L+=seg[i]}
+ const m=Math.max(8,Math.round(L/step)),s=L/m,R=[];
+ let i=0,acc=0,pos=0;
+ for(let k=0;k<m;k++){
+  const target=k*s;
+  while(i<n-1&&acc+seg[i]<target){acc+=seg[i];i++}
+  const a=P[i],b=P[(i+1)%n],t=seg[i]>0?(target-acc)/seg[i]:0;
+  R.push([a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t]);
+ }
+ return {pts:R,len:L};
+}
+function polyArea(P){let s=0;for(let i=0;i<P.length;i++){const a=P[i],b=P[(i+1)%P.length];s+=a[0]*b[1]-b[0]*a[1]}return s/2}
+function unit(v){const l=Math.hypot(v[0],v[1])||1;return [v[0]/l,v[1]/l]}
+function lineFit(pts){
+ const n=pts.length;let mx=0,my=0;for(const p of pts){mx+=p[0];my+=p[1]}mx/=n;my/=n;
+ let sxx=0,syy=0,sxy=0;for(const p of pts){const x=p[0]-mx,y=p[1]-my;sxx+=x*x;syy+=y*y;sxy+=x*y}
+ const th=.5*Math.atan2(2*sxy,sxx-syy),dx=Math.cos(th),dy=Math.sin(th);
+ let mxd=0,ss=0;for(const p of pts){const e=Math.abs((p[0]-mx)*dy-(p[1]-my)*dx);if(e>mxd)mxd=e;ss+=e*e}
+ return {mx,my,dx,dy,max:mxd,rms:Math.sqrt(ss/n)};
+}
+function circleFit(pts){
+ const n=pts.length;let mx=0,my=0;for(const p of pts){mx+=p[0];my+=p[1]}mx/=n;my/=n;
+ let Suu=0,Suv=0,Svv=0,Suuu=0,Svvv=0,Suvv=0,Svuu=0;
+ for(const p of pts){const u=p[0]-mx,v=p[1]-my;Suu+=u*u;Suv+=u*v;Svv+=v*v;Suuu+=u*u*u;Svvv+=v*v*v;Suvv+=u*v*v;Svuu+=v*u*u}
+ const det=Suu*Svv-Suv*Suv;if(Math.abs(det)<1e-9)return null;
+ const b1=.5*(Suuu+Suvv),b2=.5*(Svvv+Svuu);
+ const uc=(b1*Svv-b2*Suv)/det,vc=(Suu*b2-Suv*b1)/det;
+ const cx=mx+uc,cy=my+vc,r=Math.sqrt(uc*uc+vc*vc+(Suu+Svv)/n);
+ if(!isFinite(r))return null;
+ let mxd=0,ss=0;for(const p of pts){const e=Math.abs(Math.hypot(p[0]-cx,p[1]-cy)-r);if(e>mxd)mxd=e;ss+=e*e}
+ return {cx,cy,r,max:mxd,rms:Math.sqrt(ss/n)};
+}
+/* ----- Schneider: pas kurva Bezier kubik ----- */
+function bez(b,t){const s=1-t,a=s*s*s,c=3*s*s*t,e=3*s*t*t,f=t*t*t;
+ return [a*b[0][0]+c*b[1][0]+e*b[2][0]+f*b[3][0],a*b[0][1]+c*b[1][1]+e*b[2][1]+f*b[3][1]]}
+function chordU(d,f,l){const u=[0];for(let i=f+1;i<=l;i++)u.push(u[u.length-1]+Math.hypot(d[i][0]-d[i-1][0],d[i][1]-d[i-1][1]));const T=u[u.length-1]||1;return u.map(v=>v/T)}
+function genBez(d,f,l,u,t1,t2){
+ const p0=d[f],p3=d[l];let C00=0,C01=0,C11=0,X0=0,X1=0;
+ for(let i=0;i<u.length;i++){
+  const t=u[i],s=1-t,b0=s*s*s,b1=3*t*s*s,b2=3*t*t*s,b3=t*t*t;
+  const a1=[t1[0]*b1,t1[1]*b1],a2=[t2[0]*b2,t2[1]*b2];
+  C00+=a1[0]*a1[0]+a1[1]*a1[1];C01+=a1[0]*a2[0]+a1[1]*a2[1];C11+=a2[0]*a2[0]+a2[1]*a2[1];
+  const q=d[f+i],tx=q[0]-(p0[0]*(b0+b1)+p3[0]*(b2+b3)),ty=q[1]-(p0[1]*(b0+b1)+p3[1]*(b2+b3));
+  X0+=a1[0]*tx+a1[1]*ty;X1+=a2[0]*tx+a2[1]*ty;
+ }
+ const det=C00*C11-C01*C01;let aL=det?(X0*C11-X1*C01)/det:0,aR=det?(C00*X1-C01*X0)/det:0;
+ const sl=Math.hypot(p3[0]-p0[0],p3[1]-p0[1]);
+ if(aL<1e-6*sl||aR<1e-6*sl){aL=aR=sl/3}
+ return [p0,[p0[0]+t1[0]*aL,p0[1]+t1[1]*aL],[p3[0]+t2[0]*aR,p3[1]+t2[1]*aR],p3];
+}
+function maxErr(d,f,l,b,u){
+ let m=0,sp=(l-f+1>>1)+f;
+ for(let i=f+1;i<l;i++){const q=bez(b,u[i-f]),e=(q[0]-d[i][0])**2+(q[1]-d[i][1])**2;if(e>m){m=e;sp=i}}
+ return [Math.sqrt(m),sp];
+}
+function reparam(d,f,l,u,b){
+ return u.map((t,i)=>{
+  const p=d[f+i],q=bez(b,t),s=1-t;
+  const q1=[3*(s*s*(b[1][0]-b[0][0])+2*s*t*(b[2][0]-b[1][0])+t*t*(b[3][0]-b[2][0])),3*(s*s*(b[1][1]-b[0][1])+2*s*t*(b[2][1]-b[1][1])+t*t*(b[3][1]-b[2][1]))];
+  const q2=[6*(s*(b[2][0]-2*b[1][0]+b[0][0])+t*(b[3][0]-2*b[2][0]+b[1][0])),6*(s*(b[2][1]-2*b[1][1]+b[0][1])+t*(b[3][1]-2*b[2][1]+b[1][1]))];
+  const num=(q[0]-p[0])*q1[0]+(q[1]-p[1])*q1[1],den=q1[0]*q1[0]+q1[1]*q1[1]+(q[0]-p[0])*q2[0]+(q[1]-p[1])*q2[1];
+  return den===0?t:Math.max(0,Math.min(1,t-num/den));
+ });
+}
+function pushBez(b,out){out.push(['C',b[1][0],b[1][1],b[2][0],b[2][1],b[3][0],b[3][1]])}
+function fitCubic(d,f,l,t1,t2,err,out,depth){
+ const n=l-f+1;
+ if(n<=2){const dist=Math.hypot(d[l][0]-d[f][0],d[l][1]-d[f][1])/3;
+  pushBez([d[f],[d[f][0]+t1[0]*dist,d[f][1]+t1[1]*dist],[d[l][0]+t2[0]*dist,d[l][1]+t2[1]*dist],d[l]],out);return}
+ let u=chordU(d,f,l),b=genBez(d,f,l,u,t1,t2),[me,sp]=maxErr(d,f,l,b,u);
+ if(me<err){pushBez(b,out);return}
+ if(me<err*4){
+  for(let it=0;it<5;it++){u=reparam(d,f,l,u,b);b=genBez(d,f,l,u,t1,t2);[me,sp]=maxErr(d,f,l,b,u);if(me<err){pushBez(b,out);return}}
+ }
+ if((depth||0)>40||sp<=f||sp>=l){pushBez(b,out);return}
+ const v1=[d[sp-1][0]-d[sp][0],d[sp-1][1]-d[sp][1]],v2=[d[sp][0]-d[sp+1][0],d[sp][1]-d[sp+1][1]];
+ const tc=unit([(v1[0]+v2[0])/2,(v1[1]+v2[1])/2]);
+ fitCubic(d,f,sp,t1,tc,err,out,(depth||0)+1);
+ fitCubic(d,sp,l,[-tc[0],-tc[1]],t2,err,out,(depth||0)+1);
+}
+/* busur lingkaran -> Bezier */
+function arcOps(c,A,B,sweep,out){
+ const th0=Math.atan2(A[1]-c.cy,A[0]-c.cx),nseg=Math.max(1,Math.ceil(Math.abs(sweep)/(Math.PI/2)-1e-9)),ds=sweep/nseg,k=4/3*Math.tan(ds/4);
+ for(let j=0;j<nseg;j++){
+  const a0=th0+j*ds,a1=a0+ds,r=c.r;
+  const P0=j===0?A:[c.cx+r*Math.cos(a0),c.cy+r*Math.sin(a0)];
+  const P3=j===nseg-1?B:[c.cx+r*Math.cos(a1),c.cy+r*Math.sin(a1)];
+  const p1=[c.cx+r*Math.cos(a0)-k*r*Math.sin(a0),c.cy+r*Math.sin(a0)+k*r*Math.cos(a0)];
+  const p2=[c.cx+r*Math.cos(a1)+k*r*Math.sin(a1),c.cy+r*Math.sin(a1)-k*r*Math.cos(a1)];
+  out.push(['C',p1[0],p1[1],p2[0],p2[1],P3[0],P3[1]]);
+ }
+}
+function sweepOf(pts,c){
+ let s=0,prev=Math.atan2(pts[0][1]-c.cy,pts[0][0]-c.cx);
+ for(let i=1;i<pts.length;i++){const a=Math.atan2(pts[i][1]-c.cy,pts[i][0]-c.cx);let dd=a-prev;while(dd>Math.PI)dd-=2*Math.PI;while(dd<-Math.PI)dd+=2*Math.PI;s+=dd;prev=a}
+ return s;
+}
+/* satu bagian di antara dua sudut: garis, busur, atau Bezier */
+function fitSection(pts,tol,out){
+ const n=pts.length,A=pts[0],B=pts[n-1];
+ if(n<=3){out.push(['L',B[0],B[1]]);return}
+ const dx=B[0]-A[0],dy=B[1]-A[1],len=Math.hypot(dx,dy);
+ if(len>1e-6){
+  let mx=0,ss=0;for(let i=1;i<n-1;i++){const e=Math.abs((pts[i][0]-A[0])*dy-(pts[i][1]-A[1])*dx)/len;if(e>mx)mx=e;ss+=e*e}
+  if(mx<=tol*1.4&&Math.sqrt(ss/(n-2))<=tol*.7){out.push(['L',B[0],B[1]]);return}
+  const c=circleFit(pts);
+  if(c&&c.r<1e5&&c.max<=tol*1.3&&c.rms<=tol*.65){
+   const sw=sweepOf(pts,c);
+   if(Math.abs(sw)>0.17&&Math.abs(sw)<5.9){arcOps(c,A,B,sw,out);return}
+  }
+ }
+ const t1=unit([pts[Math.min(3,n-1)][0]-A[0],pts[Math.min(3,n-1)][1]-A[1]]),t2=unit([pts[Math.max(n-4,0)][0]-B[0],pts[Math.max(n-4,0)][1]-B[1]]);
+ fitCubic(pts,0,n-1,t1,t2,tol,out,0);
+}
+
+/* deteksi sudut pada kontur tertutup yang sudah diresample 1px */
+function findCorners(P,k,thr){
+ const n=P.length,df=new Float32Array(n);
+ for(let i=0;i<n;i++){
+  const a=P[(i-k+n)%n],b=P[i],c=P[(i+k)%n];
+  const v1x=b[0]-a[0],v1y=b[1]-a[1],v2x=c[0]-b[0],v2y=c[1]-b[1];
+  df[i]=Math.abs(Math.atan2(v1x*v2y-v1y*v2x,v1x*v2x+v1y*v2y));
+ }
+ const cs=[];
+ for(let i=0;i<n;i++){
+  if(df[i]<thr)continue;let ok=true;
+  for(let j=1;j<=k;j++){if(df[i]<=df[(i-j+n)%n]||df[i]<df[(i+j)%n]){ok=false;break}}
+  if(ok)cs.push(i);
+ }
+ return cs;
+}
+/* posisi sudut dipertajam: perpotongan dua garis hasil pas di kedua sisi */
+function refineCorners(P,cs,k,tol){
+ const n=P.length,R=[];
+ for(let q=0;q<cs.length;q++){
+  const i=cs[q],prev=cs[(q-1+cs.length)%cs.length],next=cs[(q+1)%cs.length];
+  const lenL=cs.length===1?n:((i-prev+n)%n||n),lenR=cs.length===1?n:((next-i+n)%n||n);
+  const lo=Math.min(5*k,Math.floor(lenL*.6)),ro=Math.min(5*k,Math.floor(lenR*.6));
+  let pos=P[i];
+  if(lo>=k+3&&ro>=k+3){
+   const Lp=[],Rp=[];
+   for(let j=k;j<=lo;j++)Lp.push(P[(i-j+n)%n]);
+   for(let j=k;j<=ro;j++)Rp.push(P[(i+j)%n]);
+   const a=lineFit(Lp),b=lineFit(Rp);
+   if(a.max<=tol*1.4&&b.max<=tol*1.4){
+    const det=a.dx*b.dy-a.dy*b.dx;
+    if(Math.abs(det)>0.26){
+     const tt=((b.mx-a.mx)*b.dy-(b.my-a.my)*b.dx)/det;
+     const X=[a.mx+a.dx*tt,a.my+a.dy*tt];
+     if(Math.hypot(X[0]-P[i][0],X[1]-P[i][1])<=Math.max(3,k*.9))pos=X;
+    }
+   }
+  }
+  R.push(pos);
+ }
+ return R;
+}
+function tangentAt(P,i,k){const n=P.length;const a=P[(i-k+n)%n],b=P[(i+k)%n];return unit([b[0]-a[0],b[1]-a[1]])}
+
+/* haluskan derau tangga-piksel: [1,2,1] berulang; ujung (sudut) dikunci */
+function smoothOpen(pts,N){
+ let a=pts;const n=a.length;if(n<5||N<1)return pts;
+ for(let it=0;it<N;it++){const b=new Array(n);b[0]=a[0];b[n-1]=a[n-1];
+  for(let i=1;i<n-1;i++)b[i]=[(a[i-1][0]+2*a[i][0]+a[i+1][0])*.25,(a[i-1][1]+2*a[i][1]+a[i+1][1])*.25];
+  a=b}
+ return a;
+}
+function smoothClosed(P,N){
+ let a=P;const n=a.length;
+ for(let it=0;it<N;it++){const b=new Array(n);
+  for(let i=0;i<n;i++){const p=a[(i-1+n)%n],q=a[i],r=a[(i+1)%n];b[i]=[(p[0]+2*q[0]+r[0])*.25,(p[1]+2*q[1]+r[1])*.25]}
+  a=b}
+ return a;
+}
+/* kontur -> daftar op path (M, L, C, Z) */
+function contourOps(raw,o){
+ const {pts:P,len}=resample(raw,1);
+ const n=P.length,tol=o.tol,out=[];
+ const sc=o.scale,k=Math.max(2,Math.min(Math.round(5*sc),Math.floor(n/8)));
+ /* 1) seluruh kontur = lingkaran? */
+ {const c=circleFit(P);
+  if(c&&c.r>=1&&c.max<=tol*1.2&&c.rms<=tol*.6&&c.r*6.28>len*.9){
+   const ang=Math.atan2(P[0][1]-c.cy,P[0][0]-c.cx),sgn=polyArea(P)>=0?1:-1;
+   const A=[c.cx+c.r*Math.cos(ang),c.cy+c.r*Math.sin(ang)];
+   const ops=[['M',A[0],A[1]]];arcOps({cx:c.cx,cy:c.cy,r:c.r},A,A,sgn*2*Math.PI,ops);ops.push(['Z']);return ops;
+  }}
+ /* 2) sudut */
+ let cs=n>=12?findCorners(P,k,o.corner):[];
+ if(!cs.length){
+  /* kurva mulus tertutup: haluskan dulu, lalu dua paruh */
+  const Q=smoothClosed(P,o.smoothPass);
+  const m=n>>1,t0=tangentAt(Q,0,3),tm=tangentAt(Q,m,3);
+  const h1=Q.slice(0,m+1),h2=Q.slice(m).concat([Q[0]]);
+  out.push(['M',P[0][0],P[0][1]]);
+  fitCubic(h1,0,h1.length-1,t0,[-tm[0],-tm[1]],tol,out,0);
+  fitCubic(h2,0,h2.length-1,tm,[-t0[0],-t0[1]],tol,out,0);
+  out.push(['Z']);return out;
+ }
+ const R=refineCorners(P,cs,k,tol),trim=Math.max(3,k);
+ out.push(['M',R[0][0],R[0][1]]);
+ for(let q=0;q<cs.length;q++){
+  const a=cs[q],bI=cs[(q+1)%cs.length],A=R[q],B=R[(q+1)%cs.length];
+  const L=cs.length===1?n:((bI-a+n)%n||n);
+  let pts=[A];
+  if(L>=2*trim+3){for(let j=trim;j<=L-trim;j++)pts.push(P[(a+j)%n])}
+  pts.push(B);
+  if(L>=2*trim+3)pts=smoothOpen(pts,o.smoothPass);
+  if(cs.length===1){fitCubic(pts,0,pts.length-1,unit([pts[Math.min(3,pts.length-1)][0]-A[0],pts[Math.min(3,pts.length-1)][1]-A[1]]),unit([pts[Math.max(pts.length-4,0)][0]-B[0],pts[Math.max(pts.length-4,0)][1]-B[1]]),tol,out,0)}
+  else if(L<2*trim+3)out.push(['L',B[0],B[1]]);
+  else fitSection(pts,tol,out);
+ }
+ out.push(['Z']);return out;
+}
+
+/* ---------- bangun model vektor dari hasil analisis ---------- */
+function build(an,o,removed){
+ o=o||{};const {w,h,pal}=an,n=w*h;
+ const L=new Uint8Array(an.lab),K=pal.length;
+ const rem=new Uint8Array(K+1);
+ if(removed)removed.forEach(j=>{if(j<K)rem[j]=1});
+ if(o.removeBg){
+  if(o.removeAll)rem[an.bg]=1;
+  else{
+   const st=new Int32Array(n),seen=new Uint8Array(n);let sp=0;
+   const push=i=>{if(!seen[i]&&L[i]===an.bg){seen[i]=1;st[sp++]=i}};
+   for(let x=0;x<w;x++){push(x);push((h-1)*w+x)}for(let y=0;y<h;y++){push(y*w);push(y*w+w-1)}
+   while(sp){const i=st[--sp],x=i%w,y=(i/w)|0;if(x>0)push(i-1);if(x<w-1)push(i+1);if(y>0)push(i-w);if(y<h-1)push(i+w)}
+   for(let i=0;i<n;i++)if(seen[i])L[i]=255;
+  }
+ }
+ for(let i=0;i<n;i++){const l=L[i];if(l!==255&&rem[l])L[i]=255}
+ const cnt=new Array(K).fill(0);for(let i=0;i<n;i++)if(L[i]!==255)cnt[L[i]]++;
+ const order=cnt.map((v,j)=>j).filter(j=>cnt[j]>0).sort((a,b)=>cnt[b]-cnt[a]);
+ const rank=new Int16Array(256).fill(-1);order.forEach((j,r)=>rank[j]=r);
+ const W=w+2,H=h+2,F=new Float32Array(W*H),T=new Float32Array(W*H),next=new Int32Array(W*H*2);
+ const sc=Math.max(w,h)/2000,scale=Math.max(.5,Math.min(2,Math.sqrt(Math.max(w,h)/2000)));
+ const minA=(1.5+(100-(o.detail==null?85:o.detail))*.3)*sc*sc;
+ const co={tol:Math.max(.25,o.tol||.7)*Math.max(.6,Math.min(1.6,Math.sqrt(sc))),corner:(o.corner||38)*Math.PI/180,scale,smoothPass:o.smoothPass==null?Math.max(3,Math.round(12*sc)):o.smoothPass};
+ const layers=[];let curves=0;
+ order.forEach((c,r)=>{
+  const mk=new Uint8Array(n),own=new Uint8Array(n);
+  for(let i=0;i<n;i++)if(L[i]===c){own[i]=1;mk[i]=1}
+  if(o.stack!==false){
+   const dl=dilate(own,w,h,2);
+   for(let i=0;i<n;i++){const l=L[i];if(dl[i]&&l!==255&&rank[l]>r)mk[i]=1}
+  }
+  fieldOf(mk,w,h,F,T);next.fill(-1);const starts=[];
+  march(F,W,H,next,starts);
+  const ops=[];
+  for(const raw of loops(F,W,H,next,starts)){
+   if(Math.abs(polyArea(raw))<minA)continue;
+   const op=contourOps(raw,co);
+   if(op.length<3)continue;
+   for(const x of op)ops.push(x);curves++;
+  }
+  if(ops.length)layers.push({color:'#'+pal[c].map(v=>v.toString(16).padStart(2,'0')).join(''),ops,idx:c});
+ });
+ let nodes=0;layers.forEach(l=>l.ops.forEach(x=>{if(x[0]!=='Z')nodes++}));
+ return {w,h,layers,curves,nodes,ctr:false,pal,bg:an.bg};
+}
+
+return {analyze,build};
+})();
+if(typeof module!=='undefined')module.exports=PT;
+
+const $=s=>document.querySelector(s);
+const S={img:null,pw:0,ph:0,k:16,removed:new Set(),mode:'res',pick:false,out:{w:0,h:0},ratio:1,palKey:'',model:null};
+const OUT=[['Logo presisi tinggi',{d:90,s:16,c:22,k:8}],['Logo sederhana',{d:75,s:25,c:28,k:4}],['Ilustrasi flat',{d:88,s:20,c:25,k:16}],['Titik / halftone',{d:100,s:10,c:20,k:6}],['Gambar kualitas rendah',{d:55,s:45,c:45,k:24}],['Gambar kualitas tinggi',{d:85,s:25,c:35,k:32}]];
+const CEN=[['Ilustrasi teknis',{d:70,s:20,c:40,k:2}],['Gambar garis',{d:50,s:35,c:55,k:2}]];
+const dist=(a,b)=>(a[0]-b[0])**2+(a[1]-b[1])**2+(a[2]-b[2])**2;
+const nearest=(p,C)=>{let b=0,bd=1e9;for(let j=0;j<C.length;j++){const d=dist(p,C[j]);if(d<bd){bd=d;b=j}}return b};
+const hex2rgb=h=>[1,3,5].map(i=>parseInt(h.substr(i,2),16));
+const rgb2hex=c=>'#'+c.map(v=>Math.round(v).toString(16).padStart(2,'0')).join('');
+
+/* ---------- import ---------- */
+function load(f){if(!f||!f.type.startsWith('image/'))return;const url=URL.createObjectURL(f),im=new Image();
+ im.onload=()=>{S.imgId=(S.imgId||0)+1;S.anKey='';S.img=im;S.name=f.name.replace(/\.[^.]+$/,'');S.ow=im.naturalWidth;S.oh=im.naturalHeight;S.out={w:S.ow,h:S.oh};S.ratio=S.ow/S.oh;S.removed.clear();
+  $('#orig').src=url;$('#drop').hidden=true;$('#wrap').hidden=false;prep();syncOut();fit();run()};
+ im.onerror=()=>alert('Gambar tidak bisa dibaca. Coba file JPG atau PNG lain.');im.src=url}
+function prep(){const sc=Math.min(1,+$('#res').value/Math.max(S.ow,S.oh));S.pw=Math.max(1,Math.round(S.ow*sc));S.ph=Math.max(1,Math.round(S.oh*sc));
+ const c=document.createElement('canvas');c.width=S.pw;c.height=S.ph;const x=c.getContext('2d',{willReadFrequently:true});
+ x.fillStyle='#fff';x.fillRect(0,0,S.pw,S.ph);x.imageSmoothingQuality='high';x.filter='blur(.5px)';x.drawImage(S.img,0,0,S.pw,S.ph);
+ S.data=x.getImageData(0,0,S.pw,S.ph).data;S.palKey='';S.anKey='';
+ const c2=document.createElement('canvas');c2.width=S.pw;c2.height=S.ph;const x2=c2.getContext('2d',{willReadFrequently:true});
+ x2.fillStyle='#fff';x2.fillRect(0,0,S.pw,S.ph);x2.imageSmoothingQuality='high';x2.drawImage(S.img,0,0,S.pw,S.ph);S.raw=x2.getImageData(0,0,S.pw,S.ph).data}
+function syncOut(){$('#ow').value=S.out.w;$('#oh').value=S.out.h}
+
+/* ---------- quantize (k-means) ---------- */
+function quant(k){const key=k+'|'+S.pw;if(S.palKey===key)return;S.removed.clear();
+ const d=S.data,n=S.pw*S.ph,smp=[],st=Math.max(1,Math.floor(n/6000));
+ for(let i=0;i<n;i+=st)smp.push([d[i*4],d[i*4+1],d[i*4+2]]);
+ k=Math.min(k,smp.length);const C=[smp[0].slice()],md=smp.map(p=>dist(p,C[0]));
+ while(C.length<k){let bi=0;for(let i=1;i<smp.length;i++)if(md[i]>md[bi])bi=i;if(md[bi]===0)break;C.push(smp[bi].slice());const q=C[C.length-1];for(let i=0;i<smp.length;i++)md[i]=Math.min(md[i],dist(smp[i],q))}
+ for(let it=0;it<8;it++){const sum=C.map(()=>[0,0,0,0]);for(const p of smp){const s=sum[nearest(p,C)];s[0]+=p[0];s[1]+=p[1];s[2]+=p[2];s[3]++}
+  C.forEach((c,j)=>{const s=sum[j];if(s[3]){c[0]=s[0]/s[3];c[1]=s[1]/s[3];c[2]=s[2]/s[3]}})}
+ const L=new Uint8Array(n),cache=new Map();
+ for(let i=0;i<n;i++){const kk=(d[i*4]>>2)<<12|(d[i*4+1]>>2)<<6|(d[i*4+2]>>2);let j=cache.get(kk);
+  if(j===undefined){j=nearest([d[i*4],d[i*4+1],d[i*4+2]],C);cache.set(kk,j)}L[i]=j}
+ S.pal=C.map(c=>c.map(Math.round));S.lab=L;S.palKey=key}
+/* buang piksel terisolasi (noise/JPEG) */
+function despeckle(L,w,h){const o=L.slice();
+ for(let y=1;y<h-1;y++)for(let x=1;x<w-1;x++){const i=y*w+x,v=L[i];let e=0;
+  for(const j of[i-w-1,i-w,i-w+1,i-1,i+1,i+w-1,i+w,i+w+1])if(L[j]===v)e++;
+  if(e<3){const c={};let b=v,bc=0;for(const j of[i-w-1,i-w,i-w+1,i-1,i+1,i+w-1,i+w,i+w+1]){const q=L[j];c[q]=(c[q]||0)+1;if(c[q]>bc){bc=c[q];b=q}}if(bc>=5)o[i]=b}}
+ return o}
+
+/* ---------- geometry ---------- */
+function contours(m,w,h,o1,o2){const W=w+1,starts=[],add=(a,b)=>{if(o1[a]<0)o1[a]=b;else o2[a]=b;starts.push(a)};
+ for(let y=0;y<h;y++)for(let x=0;x<w;x++){const i=y*w+x;if(!m[i])continue;const v=y*W+x;
+  if(y===0||!m[i-w])add(v,v+1);if(x===w-1||!m[i+1])add(v+1,v+W+1);if(y===h-1||!m[i+w])add(v+W+1,v+W);if(x===0||!m[i-1])add(v+W,v)}
+ const res=[];
+ for(const s0 of starts){if(o1[s0]<0&&o2[s0]<0)continue;const pts=[];let cur=s0;
+  do{pts.push(cur);let nx=o1[cur];if(nx>=0)o1[cur]=-1;else{nx=o2[cur];o2[cur]=-1}if(nx<0)break;cur=nx}while(cur!==s0);
+  res.push(pts.map(v=>[v%W,(v/W)|0]))}
+ return res}
+function decol(P){const n=P.length,R=[];for(let i=0;i<n;i++){const a=P[(i+n-1)%n],b=P[i],c=P[(i+1)%n];if((b[0]-a[0])*(c[1]-b[1])-(b[1]-a[1])*(c[0]-b[0])!==0)R.push(b)}return R}
+function area(P){let s=0;for(let i=0;i<P.length;i++){const a=P[i],b=P[(i+1)%P.length];s+=a[0]*b[1]-b[0]*a[1]}return Math.abs(s)/2}
+/* tambah titik tengah supaya penghalusan merata di tangga piksel */
+function dens(P){const R=[],n=P.length;for(let i=0;i<n;i++){const a=P[i],b=P[(i+1)%n];R.push(a);if(Math.hypot(b[0]-a[0],b[1]-a[1])>1.5)R.push([(a[0]+b[0])/2,(a[1]+b[1])/2])}return R}
+function avg(P,it){for(;it>0;it--){const n=P.length;const Q=P;P=Q.map((b,i)=>{const a=Q[(i+n-1)%n],c=Q[(i+1)%n];return[(a[0]+2*b[0]+c[0])/4,(a[1]+2*b[1]+c[1])/4]})}return P}
+function dp(P,eps,closed){const n=P.length;if(n<4)return P;const keep=new Uint8Array(n);let b=n-1;
+ if(closed){let bd=-1;for(let i=1;i<n;i++){const d=Math.hypot(P[i][0]-P[0][0],P[i][1]-P[0][1]);if(d>bd){bd=d;b=i}}}
+ keep[0]=keep[b]=1;const st=closed?[[0,b],[b,n]]:[[0,n-1]];
+ while(st.length){const[s,e]=st.pop(),A=P[s],B=P[e%n],dx=B[0]-A[0],dy=B[1]-A[1],l=Math.hypot(dx,dy)||1;let md=-1,mi=-1;
+  for(let i=s+1;i<e;i++){const d=Math.abs((P[i][0]-A[0])*dy-(P[i][1]-A[1])*dx)/l;if(d>md){md=d;mi=i}}
+  if(md>eps){keep[mi]=1;st.push([s,mi],[mi,e])}}
+ return P.filter((_,i)=>keep[i])}
+function toOps(P,closed,thr){const n=P.length,sm=[],T=[];
+ for(let i=0;i<n;i++){const a=P[closed?(i+n-1)%n:Math.max(i-1,0)],b=P[i],c=P[closed?(i+1)%n:Math.min(i+1,n-1)];
+  const ux=b[0]-a[0],uy=b[1]-a[1],vx=c[0]-b[0],vy=c[1]-b[1],lu=Math.hypot(ux,uy),lv=Math.hypot(vx,vy);let ok=false,tx=0,ty=0;
+  if((closed||(i>0&&i<n-1))&&lu&&lv){const ang=Math.acos(Math.max(-1,Math.min(1,(ux*vx+uy*vy)/(lu*lv))))*180/Math.PI;ok=ang<thr;
+   tx=c[0]-a[0];ty=c[1]-a[1];const l=Math.hypot(tx,ty)||1;tx/=l;ty/=l}
+  sm[i]=ok;T[i]=[tx,ty]}
+ const ops=[['M',P[0][0],P[0][1]]],segs=closed?n:n-1;
+ for(let i=0;i<segs;i++){const j=(i+1)%n,A=P[i],B=P[j],L=Math.hypot(B[0]-A[0],B[1]-A[1])/3;
+  if(!sm[i]&&!sm[j])ops.push(['L',B[0],B[1]]);
+  else{const c1=sm[i]?[A[0]+T[i][0]*L,A[1]+T[i][1]*L]:[A[0]+(B[0]-A[0])/3,A[1]+(B[1]-A[1])/3];
+   const c2=sm[j]?[B[0]-T[j][0]*L,B[1]-T[j][1]*L]:[B[0]-(B[0]-A[0])/3,B[1]-(B[1]-A[1])/3];
+   ops.push(['C',c1[0],c1[1],c2[0],c2[1],B[0],B[1]])}}
+ if(closed)ops.push(['Z']);return ops}
+/* Zhang-Suen thinning + skeleton walk (centerline) */
+function thin(m,w,h){let ch=true;const del=[];
+ while(ch){ch=false;for(let s=0;s<2;s++){del.length=0;
+  for(let y=1;y<h-1;y++)for(let x=1;x<w-1;x++){const i=y*w+x;if(!m[i])continue;
+   const p2=m[i-w],p3=m[i-w+1],p4=m[i+1],p5=m[i+w+1],p6=m[i+w],p7=m[i+w-1],p8=m[i-1],p9=m[i-w-1],B=p2+p3+p4+p5+p6+p7+p8+p9;
+   if(B<2||B>6)continue;
+   const A=(!p2&&p3?1:0)+(!p3&&p4?1:0)+(!p4&&p5?1:0)+(!p5&&p6?1:0)+(!p6&&p7?1:0)+(!p7&&p8?1:0)+(!p8&&p9?1:0)+(!p9&&p2?1:0);
+   if(A!==1)continue;
+   if(s===0){if(p2&&p4&&p6)continue;if(p4&&p6&&p8)continue}else{if(p2&&p4&&p8)continue;if(p2&&p6&&p8)continue}
+   del.push(i)}
+  for(const i of del)m[i]=0;if(del.length)ch=true}}}
+function skel(m,w,h){const vis=new Uint8Array(w*h),paths=[],N=[[1,0],[0,1],[-1,0],[0,-1],[1,1],[-1,1],[1,-1],[-1,-1]];
+ const deg=(x,y)=>{let d=0;for(const[a,b]of N)if(m[(y+b)*w+x+a])d++;return d};
+ const walk=(x,y)=>{const p=[[x,y]];vis[y*w+x]=1;
+  for(;;){let nx=-1,ny=-1;for(const[a,b]of N){const X=x+a,Y=y+b;if(m[Y*w+X]&&!vis[Y*w+X]){nx=X;ny=Y;break}}
+   if(nx<0){for(const[a,b]of N){const X=x+a,Y=y+b;if(m[Y*w+X]&&vis[Y*w+X]&&p.length>2){const q=p[p.length-2];if(!(X===q[0]&&Y===q[1])){p.push([X,Y]);break}}}break}
+   x=nx;y=ny;vis[y*w+x]=1;p.push([x,y])}
+  paths.push(p)};
+ for(let y=1;y<h-1;y++)for(let x=1;x<w-1;x++)if(m[y*w+x]&&!vis[y*w+x]&&deg(x,y)===1)walk(x,y);
+ for(let y=1;y<h-1;y++)for(let x=1;x<w-1;x++)if(m[y*w+x]&&!vis[y*w+x])walk(x,y);
+ return paths}
+
+/* ---------- trace ---------- */
+function traceLegacy(){
+ const w=S.pw,h=S.ph,n=w*h,ctr=$('#tt').value==='c';
+ quant(ctr?2:S.k);const pal=S.pal,det=+$('#detail').value,sm=+$('#smooth').value,cs=+$('#corner').value;
+ const lab=det<95?despeckle(S.lab,w,h):S.lab,L=lab.slice();
+ const eps=.5+sm/100*2.2,it=2+Math.round(sm/20),thr=12+cs*1.6;
+ /* latar belakang hanya dihapus jika dicentang (centerline selalu membuang latar) */
+ if(ctr||$('#rmbg').checked){let bg=-1;
+  if($('#bgs').checked&&!ctr)bg=nearest(hex2rgb($('#bgc').value),pal);
+  else{const c=new Array(pal.length).fill(0),b=i=>{c[lab[i]]++};
+   for(let x=0;x<w;x++){b(x);b((h-1)*w+x)}for(let y=0;y<h;y++){b(y*w);b(y*w+w-1)}
+   let mx=0;c.forEach((v,j)=>{if(v>c[mx])mx=j});bg=mx}
+  if(bg>=0){
+   if(ctr||$('#all').checked){for(let i=0;i<n;i++)if(L[i]===bg)L[i]=255}
+   else{const st=new Int32Array(n),seen=new Uint8Array(n);let sp=0;const push=i=>{if(!seen[i]&&lab[i]===bg){seen[i]=1;st[sp++]=i}};
+    for(let x=0;x<w;x++){push(x);push((h-1)*w+x)}for(let y=0;y<h;y++){push(y*w);push(y*w+w-1)}
+    while(sp){const i=st[--sp],x=i%w,y=(i/w)|0;if(x>0)push(i-1);if(x<w-1)push(i+1);if(y>0)push(i-w);if(y<h-1)push(i+w)}
+    for(let i=0;i<n;i++)if(seen[i])L[i]=255}}}
+ const rm=new Uint8Array(256);if(!ctr)S.removed.forEach(j=>rm[j]=1);
+ for(let i=0;i<n;i++)if(rm[L[i]])L[i]=255;
+ const cnt=new Array(pal.length).fill(0);for(let i=0;i<n;i++)if(L[i]!==255)cnt[L[i]]++;
+ const m={w,h,layers:[],curves:0,nodes:0,ctr};
+ if(!ctr){
+  const order=cnt.map((v,j)=>j).filter(j=>cnt[j]>0).sort((a,b)=>cnt[b]-cnt[a]),rank=new Int16Array(256).fill(-1);order.forEach((j,r)=>rank[j]=r);
+  const V=(w+1)*(h+1),o1=new Int32Array(V).fill(-1),o2=new Int32Array(V).fill(-1),minA=2+(100-det)/100*40,ovl=$('#ovl').checked;
+  for(const c of order){const mk=new Uint8Array(n),r=rank[c];
+   for(let i=0;i<n;i++){const q=L[i];if(q!==255&&(ovl?q===c:rank[q]>=r))mk[i]=1}
+   const ops=[];let cu=0;
+   for(let P of contours(mk,w,h,o1,o2)){P=decol(P);if(P.length<3||area(P)<minA)continue;P=dp(avg(dens(P),it),eps,true);if(P.length<3)continue;for(const o of toOps(P,true,thr))ops.push(o);cu++}
+   if(cu){m.layers.push({color:rgb2hex(pal[c]),ops});m.curves+=cu}}
+ }else{
+  const fg=new Uint8Array(n),cc=new Array(pal.length).fill(0);let ar=0;
+  for(let i=0;i<n;i++)if(L[i]!==255){fg[i]=1;ar++;cc[L[i]]++}
+  for(let x=0;x<w;x++){fg[x]=0;fg[(h-1)*w+x]=0}for(let y=0;y<h;y++){fg[y*w]=0;fg[y*w+w-1]=0}
+  let col=0;cc.forEach((v,j)=>{if(v>cc[col])col=j});
+  thin(fg,w,h);let sk=0;for(let i=0;i<n;i++)sk+=fg[i];
+  const wd=Math.max(1,ar/Math.max(1,sk)),minL=3+(100-det)/100*25,ops=[];
+  for(const p of skel(fg,w,h)){if(p.length<minL)continue;const P=dp(avg(p,1),eps,false);if(P.length<2)continue;for(const o of toOps(P,false,thr))ops.push(o);m.curves++}
+  if(ops.length)m.layers.push({color:rgb2hex(pal[col]),ops,stroke:wd})}
+ m.layers.forEach(l=>m.nodes+=l.ops.filter(o=>o[0]!=='Z').length);
+ S.model=m}
+
+/* ---------- trace v3 ---------- */
+function trace(){
+ if($('#tt').value==='c')return traceLegacy();
+ const key=S.pw+'x'+S.ph+'|'+S.k+'|'+(S.imgId||0);
+ if(S.anKey!==key){S.an=PT.analyze(S.raw,S.pw,S.ph,{maxColors:S.k});S.anKey=key;S.removed.clear()}
+ let an=S.an;
+ if($('#bgs').checked)an=Object.assign({},an,{bg:nearest(hex2rgb($('#bgc').value),an.pal)});
+ const sm=+$('#smooth').value,cs=+$('#corner').value;
+ S.model=PT.build(an,{removeBg:$('#rmbg').checked,removeAll:$('#all').checked,stack:$('#ovl').checked,detail:+$('#detail').value,tol:.35+sm/100*1.4,corner:15+cs*.9},S.removed);
+ S.pal=an.pal;S.bg=an.bg}
+/* verifikasi: render ulang SVG lalu bandingkan dengan gambar asli */
+async function verify(){
+ const tk=S.vt=(S.vt||0)+1,m=S.model;
+ if(!m||m.ctr||!S.raw){$('#q-s').textContent='–';$('#q-e').textContent='';return null}
+ const url=URL.createObjectURL(new Blob([svg({px:1})],{type:'image/svg+xml'}));
+ const im=await new Promise((res,rej)=>{const i=new Image();i.onload=()=>res(i);i.onerror=rej;i.src=url});
+ if(tk!==S.vt){URL.revokeObjectURL(url);return null}
+ const w=S.pw,h=S.ph,c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d',{willReadFrequently:true});
+ x.fillStyle='#fff';x.fillRect(0,0,w,h);x.drawImage(im,0,0,w,h);URL.revokeObjectURL(url);
+ const a=S.raw,b=x.getImageData(0,0,w,h).data,dc=$('#dfc');dc.width=w;dc.height=h;
+ const dx=dc.getContext('2d'),di=dx.createImageData(w,h);let mis=0,sum=0;
+ for(let i=0,p=0;i<w*h;i++,p+=4){const e=Math.max(Math.abs(a[p]-b[p]),Math.abs(a[p+1]-b[p+1]),Math.abs(a[p+2]-b[p+2]));sum+=e;
+  if(e>40){mis++;di.data[p]=255;di.data[p+1]=0;di.data[p+2]=60;di.data[p+3]=235}else if(e>16){di.data[p]=255;di.data[p+1]=150;di.data[p+2]=0;di.data[p+3]=120}}
+ dx.putImageData(di,0,0);
+ S.score=100*(1-mis/(w*h));S.mae=sum/(w*h);
+ $('#q-s').textContent=S.score.toFixed(2)+'%';$('#q-e').textContent='selisih rata-rata '+S.mae.toFixed(2)+'/255';
+ return {score:S.score,mae:S.mae};
+}
+/* ---------- output ---------- */
+const D=ops=>ops.map(o=>o[0]+o.slice(1).map(v=>+v.toFixed(2)).join(' ')).join('');
+function svg(o){o=o||{};const m=S.model,sc=o.sc||1,ovl=$('#ovl').checked;
+ let s=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${m.w} ${m.h}" width="${o.px?m.w:S.out.w*sc}" height="${o.px?m.h:S.out.h*sc}" preserveAspectRatio="none" shape-rendering="geometricPrecision">`;
+ if(o.bg)s+=`<rect width="${m.w}" height="${m.h}" fill="${o.bg}"/>`;
+ const g=$('#group').checked;
+ m.layers.forEach((l,i)=>{const d=D(l.ops);let p;
+  if(o.wire)p=`<path d="${d}" fill="none" stroke="#e11d48" stroke-width="1" vector-effect="non-scaling-stroke"/>`;
+  else if(l.stroke)p=`<path d="${d}" fill="none" stroke="${l.color}" stroke-width="${l.stroke.toFixed(2)}" stroke-linecap="round" stroke-linejoin="round"/>`;
+  else p=`<path d="${d}" fill-rule="evenodd" fill="${l.color}"/>`;
+  s+=g?`<g id="color-${i+1}">${p}</g>`:p});
+ return s+'</svg>'}
+function eps(){const m=S.model,kx=S.out.w/m.w,ky=S.out.h/m.h,H=S.out.h,f=v=>+v.toFixed(2);
+ let s=`%!PS-Adobe-3.0 EPSF-3.0\n%%BoundingBox: 0 0 ${Math.ceil(S.out.w)} ${Math.ceil(H)}\n%%Creator: PowerTRACE Web\n%%EndComments\n`;
+ for(const l of m.layers){s+=hex2rgb(l.color).map(v=>(v/255).toFixed(4)).join(' ')+' setrgbcolor\nnewpath\n';
+  for(const o of l.ops){const q=[];for(let i=1;i<o.length;i+=2)q.push(f(o[i]*kx),f(H-o[i+1]*ky));const p=q.join(' ');
+   s+=o[0]==='M'?p+' moveto\n':o[0]==='L'?p+' lineto\n':o[0]==='C'?p+' curveto\n':'closepath\n'}
+  s+=l.stroke?`${f(l.stroke*kx)} setlinewidth 1 setlinecap 1 setlinejoin stroke\n`:'eofill\n'}
+ return s+'showpage\n%%EOF\n'}
+function dl(b,name){const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=name;document.body.appendChild(a);a.click();a.remove()}
+function exp(){if(!S.model){alert('Impor gambar dulu.');return}
+ const f=$('#fmt').value,nm=(S.name||'trace')+'-trace';
+ if(f==='svg')dl(new Blob([svg()],{type:'image/svg+xml'}),nm+'.svg');
+ else if(f==='eps')dl(new Blob([eps()],{type:'application/postscript'}),nm+'.eps');
+ else{const sc=+$('#xs').value,W=Math.round(S.out.w*sc),H=Math.round(S.out.h*sc);if(W*H>64e6){alert('Ukuran terlalu besar, kecilkan skala.');return}
+  const im=new Image(),u=URL.createObjectURL(new Blob([svg({sc})],{type:'image/svg+xml'}));
+  im.onload=()=>{const c=document.createElement('canvas');c.width=W;c.height=H;const x=c.getContext('2d');
+   if(f==='jpg'){x.fillStyle=$('#jbg').value;x.fillRect(0,0,W,H)}x.drawImage(im,0,0,W,H);
+   c.toBlob(b=>dl(b,nm+'.'+f),f==='jpg'?'image/jpeg':'image/png',.95);URL.revokeObjectURL(u)};im.src=u}}
+
+/* ---------- view: pan & zoom ---------- */
+const V={s:1,x:0,y:0,f:1},stg=$('#stage');
+function put(){const w=$('#wrap');w.style.width=S.pw+'px';w.style.height=S.ph+'px';w.style.transform=`translate(${V.x}px,${V.y}px) scale(${V.s})`;$('#zl').textContent=Math.round(V.s/V.f*100)+'%'}
+function fit(){if(!S.img)return;const W=stg.clientWidth,H=stg.clientHeight;V.f=Math.min((W-28)/S.pw,(H-120)/S.ph);V.s=V.f;V.x=(W-S.pw*V.s)/2;V.y=(H-S.ph*V.s)/2;put()}
+function zoomAt(cx,cy,f){if(!S.img)return;const s=Math.min(V.f*40,Math.max(V.f*.2,V.s*f)),k=s/V.s;V.x=cx-(cx-V.x)*k;V.y=cy-(cy-V.y)*k;V.s=s;put()}
+function view(){if(!S.img)return;const v=S.mode,o=$('#orig'),sb=$('#svgbox');
+ o.style.display=(v==='res'&&$('#del').checked)?'none':'block';o.style.opacity=v==='wire'?.5:v==='res'?.3:v==='diff'?.35:1;
+ sb.style.display=(v==='orig'||v==='diff')?'none':'block';$('#dfc').style.display=v==='diff'?'block':'none';sb.style.clipPath=v==='split'?`inset(0 0 0 ${$('#spl').value}%)`:'none';
+ sb.innerHTML=S.model?svg({wire:v==='wire'}):'';
+ $('#spl').style.display=v==='split'?'block':'none';
+ document.querySelectorAll('[data-v]').forEach(b=>b.classList.toggle('on',b.dataset.v===v))}
+function render(){const m=S.model;$('#d-c').textContent=m.curves;$('#d-n').textContent=m.nodes;$('#d-k').textContent=m.layers.length;
+ $('#sw').innerHTML=m.ctr?'':S.pal.map((c,i)=>`<button class="sw${(S.removed.has(i)||(i===S.bg&&$('#rmbg').checked))?' off':''}" data-i="${i}" style="background:${rgb2hex(c)}" title="${rgb2hex(c)}" aria-label="Warna ${rgb2hex(c)}"></button>`).join('');
+ $('#cn').textContent=m.ctr?'Centerline memakai 2 warna (garis dan latar), jadi pengaturan warna tidak dipakai.':'';
+ put();view()}
+let tm;function run(){if(!S.img)return;clearTimeout(tm);$('#st').style.display='block';
+ tm=setTimeout(()=>{try{trace();render();$('#st').style.display='none';verify().catch(()=>{})}catch(e){console.error(e);$('#st').textContent='Gagal: '+e.message}},30)}
+
+/* ---------- UI wiring ---------- */
+function fillTypes(){const L=$('#tt').value==='o'?OUT:CEN;$('#ty').innerHTML=L.map((p,i)=>`<option value="${i}">${p[0]}</option>`).join('');$('#ty').selectedIndex=0;preset()}
+function preset(){const L=$('#tt').value==='o'?OUT:CEN,p=L[+$('#ty').value][1];$('#detail').value=p.d;$('#smooth').value=p.s;$('#corner').value=p.c;S.k=p.k;$('#k').value=Math.max(2,p.k);outs()}
+function outs(){for(const id of['detail','smooth','corner','k'])$('#o-'+id).textContent=$('#'+id).value}
+$('#tt').onchange=()=>{fillTypes();run()};$('#ty').onchange=()=>{preset();run()};
+for(const id of['detail','smooth','corner'])$('#'+id).oninput=()=>{outs();run()};
+$('#k').oninput=()=>{S.k=+$('#k').value;outs();run()};
+['rmbg','bga','bgs','bgc','all','ovl','group','res'].forEach(id=>$('#'+id).onchange=()=>{
+ if(id==='res'){prep();fit()}if(id==='bgc')$('#bgs').checked=true;
+ $('#bgo').classList.toggle('dis',!$('#rmbg').checked);run()});
+$('#del').onchange=view;
+$('#sw').onclick=e=>{const b=e.target.closest('.sw');if(!b)return;const i=+b.dataset.i;
+ if(i===S.bg&&!S.model.ctr){const r=$('#rmbg');r.checked=!r.checked;$('#bgo').classList.toggle('dis',!r.checked)}
+ else S.removed.has(i)?S.removed.delete(i):S.removed.add(i);run()};
+$('#auto').onclick=async()=>{
+ if(!S.img){alert('Impor gambar dulu.');return}
+ if($('#tt').value==='c'){alert('Optimasi otomatis hanya untuk mode Outline.');return}
+ const st=$('#st');st.style.display='block';
+ const combos=[[8,22],[16,22],[28,22],[16,10],[16,38],[8,38]];let best=null;
+ for(let i=0;i<combos.length;i++){
+  st.textContent='Mengoptimalkan '+(i+1)+'/'+combos.length+'…';await new Promise(r=>setTimeout(r,25));
+  $('#smooth').value=combos[i][0];$('#corner').value=combos[i][1];
+  try{trace()}catch(e){continue}
+  const v=await verify();if(!v)continue;
+  const obj=v.score-S.model.nodes*0.0002;if(!best||obj>best.obj)best={obj,s:combos[i],score:v.score,nodes:S.model.nodes};
+ }
+ if(best){$('#smooth').value=best.s[0];$('#corner').value=best.s[1];
+  $('#q-n').textContent='Pengaturan terbaik dipilih otomatis (toleransi '+best.s[0]+', sudut '+best.s[1]+').'}
+ outs();st.textContent='Memproses…';run()};
+document.querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>{$('#panel').classList.remove('min');document.querySelectorAll('.tab').forEach(t=>t.hidden=t.id!=='t-'+b.dataset.t);document.querySelectorAll('[data-t]').forEach(x=>x.classList.toggle('on',x===b))});
+$('#pc').onclick=()=>{const p=$('#panel');p.classList.toggle('min');$('#pc').textContent=p.classList.contains('min')?'▴':'▾'};
+document.querySelectorAll('[data-v]').forEach(b=>b.onclick=()=>{S.mode=b.dataset.v;view()});
+$('#spl').oninput=()=>{$('#svgbox').style.clipPath=`inset(0 0 0 ${$('#spl').value}%)`};
+const ctr=()=>({x:stg.clientWidth/2,y:stg.clientHeight/2});
+$('#zi').onclick=()=>{const c=ctr();zoomAt(c.x,c.y,1.3)};$('#zo').onclick=()=>{const c=ctr();zoomAt(c.x,c.y,1/1.3)};$('#zf').onclick=fit;
+stg.addEventListener('wheel',e=>{e.preventDefault();const r=stg.getBoundingClientRect();zoomAt(e.clientX-r.left,e.clientY-r.top,e.deltaY<0?1.12:1/1.12)},{passive:false});
+new ResizeObserver(()=>fit()).observe(stg);
+/* geser 1 jari, cubit 2 jari */
+const P=new Map();let mv=0,pd=0;const dd=()=>{const a=[...P.values()];return Math.hypot(a[0][0]-a[1][0],a[0][1]-a[1][1])};
+stg.addEventListener('pointerdown',e=>{if(!S.img||e.target.closest('.fl,#spl'))return;stg.setPointerCapture(e.pointerId);P.set(e.pointerId,[e.clientX,e.clientY]);mv=0;pd=P.size===2?dd():0});
+stg.addEventListener('pointermove',e=>{const o=P.get(e.pointerId);if(!o)return;const dx=e.clientX-o[0],dy=e.clientY-o[1];P.set(e.pointerId,[e.clientX,e.clientY]);mv+=Math.abs(dx)+Math.abs(dy);
+ if(P.size===1){V.x+=dx;V.y+=dy;put()}else if(P.size===2){const d=dd(),a=[...P.values()],r=stg.getBoundingClientRect();if(pd)zoomAt((a[0][0]+a[1][0])/2-r.left,(a[0][1]+a[1][1])/2-r.top,d/pd);pd=d}});
+const up=e=>{if(P.size===1&&mv<8&&S.pick&&P.has(e.pointerId))pickAt(e);P.delete(e.pointerId);pd=0};
+stg.addEventListener('pointerup',up);stg.addEventListener('pointercancel',up);
+$('#pk').onclick=()=>{S.pick=!S.pick;$('#bgs').checked=true;$('#pk').classList.toggle('on',S.pick);stg.style.cursor=S.pick?'crosshair':''};
+function pickAt(e){const r=$('#wrap').getBoundingClientRect(),x=Math.min(S.pw-1,Math.max(0,((e.clientX-r.left)/r.width*S.pw)|0)),y=Math.min(S.ph-1,Math.max(0,((e.clientY-r.top)/r.height*S.ph)|0)),i=(y*S.pw+x)*4;
+ $('#bgc').value=rgb2hex([S.data[i],S.data[i+1],S.data[i+2]]);S.pick=false;$('#pk').classList.remove('on');stg.style.cursor='';run()}
+$('#ow').oninput=()=>{S.out.w=Math.max(1,+$('#ow').value||1);if($('#lk').checked){S.out.h=Math.max(1,Math.round(S.out.w/S.ratio));$('#oh').value=S.out.h}};
+$('#oh').oninput=()=>{S.out.h=Math.max(1,+$('#oh').value||1);if($('#lk').checked){S.out.w=Math.max(1,Math.round(S.out.h*S.ratio));$('#ow').value=S.out.w}};
+$('#o0').onclick=()=>{S.out={w:S.ow||0,h:S.oh||0};syncOut()};
+$('#ex').onclick=exp;$('#hex').onclick=exp;
+$('#bimp').onclick=()=>$('#file').click();$('#drop').onclick=()=>$('#file').click();
+$('#file').onchange=e=>{load(e.target.files[0]);e.target.value=''};
+addEventListener('dragover',e=>{e.preventDefault();$('#drop').classList.add('hot')});
+addEventListener('dragleave',()=>$('#drop').classList.remove('hot'));
+addEventListener('drop',e=>{e.preventDefault();$('#drop').classList.remove('hot');load(e.dataTransfer.files[0])});
+addEventListener('paste',e=>{for(const it of e.clipboardData.items)if(it.type.startsWith('image/')){load(it.getAsFile());break}});
+/* ---------- preset pengguna (.tpi) ---------- */
+const PK='powertrace.presets',IDS=['tt','detail','smooth','corner','k','res'],CK=['del','rmbg','bga','bgs','all','ovl','group'];
+let PR=[];try{PR=JSON.parse(localStorage.getItem(PK)||'[]')}catch(e){}
+const store=()=>{try{localStorage.setItem(PK,JSON.stringify(PR))}catch(e){alert('Penyimpanan browser tidak tersedia. Gunakan Ekspor .tpi untuk menyimpan preset.')}};
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function snap(){const o={};IDS.forEach(i=>o[i]=$('#'+i).value);o.ty=$('#ty').value;CK.forEach(i=>o[i]=$('#'+i).checked);o.bgc=$('#bgc').value;return o}
+function applyP(o){const L=o.tt==='c'?CEN:OUT;$('#tt').value=o.tt==='c'?'c':'o';
+ $('#ty').innerHTML=L.map((p,i)=>`<option value="${i}">${p[0]}</option>`).join('');$('#ty').value=Math.min(+o.ty||0,L.length-1);
+ for(const i of['detail','smooth','corner','k'])if(o[i]!=null)$('#'+i).value=o[i];
+ S.k=+$('#k').value;CK.forEach(i=>{if(typeof o[i]==='boolean')$('#'+i).checked=o[i]});if(o.bgc)$('#bgc').value=o.bgc;
+ const r=o.res&&[...$('#res').options].some(x=>x.value===String(o.res));if(r&&$('#res').value!==String(o.res)){$('#res').value=o.res;if(S.img){prep();fit()}}
+ $('#bgo').classList.toggle('dis',!$('#rmbg').checked);outs();run()}
+function listP(){$('#pl').innerHTML=PR.length?PR.map((p,i)=>`<div class="pi"><b>${esc(p.n)}</b><button data-a="${i}" class="p">Pakai</button><button data-e="${i}">Ekspor</button><button data-d="${i}" aria-label="Hapus ${esc(p.n)}">✕</button></div>`).join(''):'<div class="mu" style="margin-top:10px">Belum ada preset. Atur pengaturan, beri nama, lalu simpan.</div>'}
+$('#ps').onclick=()=>{const n=$('#pn').value.trim();if(!n){$('#pn').focus();return}
+ const o={n,s:snap()},i=PR.findIndex(p=>p.n===n);i>=0?PR[i]=o:PR.push(o);store();listP();$('#pn').value=''};
+$('#pl').onclick=e=>{const b=e.target.closest('button');if(!b)return;const d=b.dataset;
+ if(d.a!=null)applyP(PR[+d.a].s);
+ else if(d.d!=null){if(confirm('Hapus preset "'+PR[+d.d].n+'"?')){PR.splice(+d.d,1);store();listP()}}
+ else if(d.e!=null){const p=PR[+d.e];dl(new Blob([JSON.stringify({tpi:1,presets:[p]})],{type:'application/json'}),p.n.replace(/[^\w-]+/g,'_')+'.tpi')}};
+$('#pe').onclick=()=>{if(!PR.length){alert('Belum ada preset untuk diekspor.');return}dl(new Blob([JSON.stringify({tpi:1,presets:PR})],{type:'application/json'}),'powertrace-presets.tpi')};
+$('#pi').onclick=()=>$('#pf').click();
+$('#pf').onchange=e=>{const f=e.target.files[0];e.target.value='';if(!f)return;const r=new FileReader();
+ r.onload=()=>{try{const j=JSON.parse(r.result),a=(j.presets||[]).filter(p=>p&&p.n&&p.s&&typeof p.s==='object');if(!a.length)throw 0;
+  a.forEach(p=>{const o={n:String(p.n).slice(0,40),s:p.s},i=PR.findIndex(q=>q.n===o.n);i>=0?PR[i]=o:PR.push(o)});store();listP()}catch(x){alert('File .tpi tidak valid.')}};r.readAsText(f)};
+listP();
+fillTypes();
+
+</script></body></html>
